@@ -55,6 +55,7 @@ export function PlaybackEngine() {
   const readyRef = useRef(false);
   const lastIdRef = useRef<string | null>(null);
   const seekFlag = useRef(false);
+  const wantPlayRef = useRef(false);
 
   const source = useMusify((s) => s.source);
   const isPlaying = useMusify((s) => s.isPlaying);
@@ -64,6 +65,10 @@ export function PlaybackEngine() {
   const volume = useMusify((s) => s.volume);
   const seekRequest = useMusify((s) => s.seekRequest);
   const song = queue[index] ?? null;
+
+  useEffect(() => {
+    wantPlayRef.current = isPlaying;
+  }, [isPlaying]);
 
   useEffect(() => {
     let cancelled = false;
@@ -102,10 +107,33 @@ export function PlaybackEngine() {
               useMusify.getState().next();
             } else if (e.data === YT.PlayerState.PLAYING) {
               useMusify.getState().setPlaying(true);
+              try {
+                if ("mediaSession" in navigator) {
+                  navigator.mediaSession.playbackState = "playing";
+                }
+              } catch {
+                /* */
+              }
               const dur = playerRef.current?.getDuration() ?? 0;
               if (dur > 0) useMusify.getState().setDuration(dur);
             } else if (e.data === YT.PlayerState.PAUSED) {
-              useMusify.getState().setPlaying(false);
+              if (!wantPlayRef.current) {
+                useMusify.getState().setPlaying(false);
+                try {
+                  if ("mediaSession" in navigator) {
+                    navigator.mediaSession.playbackState = "paused";
+                  }
+                } catch {
+                  /* */
+                }
+              } else {
+                // Browser paused us (background) — try resume
+                try {
+                  playerRef.current?.playVideo();
+                } catch {
+                  /* */
+                }
+              }
             }
           },
         },
@@ -157,11 +185,72 @@ export function PlaybackEngine() {
         const d = p.getDuration();
         if (Number.isFinite(t)) useMusify.setState({ position: t });
         if (Number.isFinite(d) && d > 0) useMusify.getState().setDuration(d);
+        if ("mediaSession" in navigator && Number.isFinite(d) && d > 0) {
+          try {
+            navigator.mediaSession.setPositionState({
+              duration: d,
+              position: Math.min(t, d),
+              playbackRate: 1,
+            });
+          } catch {
+            /* */
+          }
+        }
+        // Keep alive if stalled while user wants play
+        if (wantPlayRef.current) {
+          const st = p.getPlayerState();
+          const YT = window.YT;
+          if (YT && (st === YT.PlayerState.PAUSED || st === YT.PlayerState.BUFFERING)) {
+            p.playVideo();
+          }
+        }
       } catch {
         /* player not ready */
       }
     }, 400);
     return () => window.clearInterval(id);
+  }, []);
+
+  // Background / swipe-away: resume when tab visible again + periodic kick
+  useEffect(() => {
+    const resumeIfNeeded = () => {
+      if (!wantPlayRef.current) return;
+      const st = useMusify.getState();
+      if (!st.isPlaying) return;
+      if (st.source === "youtube" && playerRef.current && readyRef.current) {
+        try {
+          playerRef.current.playVideo();
+        } catch {
+          /* */
+        }
+      }
+      if (st.source === "radio" && audioRef.current && st.radioUrl) {
+        void audioRef.current.play().catch(() => {});
+      }
+    };
+
+    const onVis = () => {
+      if (document.visibilityState === "visible") resumeIfNeeded();
+      else if (wantPlayRef.current) resumeIfNeeded();
+    };
+
+    document.addEventListener("visibilitychange", onVis);
+    window.addEventListener("pageshow", resumeIfNeeded);
+    window.addEventListener("focus", resumeIfNeeded);
+    window.addEventListener("online", resumeIfNeeded);
+
+    const kick = window.setInterval(() => {
+      if (!wantPlayRef.current) return;
+      resumeIfNeeded();
+    }, 3500);
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("pageshow", resumeIfNeeded);
+      window.removeEventListener("focus", resumeIfNeeded);
+      window.removeEventListener("online", resumeIfNeeded);
+      window.clearInterval(kick);
+    };
   }, []);
 
   useEffect(() => {
@@ -185,6 +274,7 @@ export function PlaybackEngine() {
         title: radioName,
         artist: "Radio",
       });
+      navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
       return;
     }
     if (!songNow) return;
@@ -195,6 +285,7 @@ export function PlaybackEngine() {
         ? [{ src: songNow.image, sizes: "512x512", type: "image/jpeg" }]
         : [],
     });
+    navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
     navigator.mediaSession.setActionHandler("play", () =>
       useMusify.getState().setPlaying(true),
     );
@@ -207,12 +298,12 @@ export function PlaybackEngine() {
     navigator.mediaSession.setActionHandler("nexttrack", () =>
       useMusify.getState().next(),
     );
-  }, [song?.ytid, source, radioUrl]);
+  }, [song?.ytid, source, radioUrl, isPlaying]);
 
   return (
     <div className="pointer-events-none absolute h-0 w-0 overflow-hidden opacity-0" aria-hidden>
       <div ref={hostRef} />
-      <audio ref={audioRef} crossOrigin="anonymous" />
+      <audio ref={audioRef} crossOrigin="anonymous" playsInline />
     </div>
   );
 }
