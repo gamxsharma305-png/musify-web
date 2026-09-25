@@ -120,7 +120,7 @@ export const useMusify = create<MusifyState>()(
       position: 0,
       duration: 0,
       shuffle: false,
-      repeat: "off",
+      repeat: "all",
       volume: 1,
       nowPlayingOpen: false,
       source: "youtube",
@@ -131,7 +131,6 @@ export const useMusify = create<MusifyState>()(
       lyrics: null,
       lyricsOpen: false,
       seekRequest: null,
-
 
       setAccent: (hex) => {
         set({ accent: hex });
@@ -281,7 +280,12 @@ export const useMusify = create<MusifyState>()(
       playSongs: (songs, startIndex = 0) => {
         if (!songs.length) return;
         const list = get().shuffle ? shuffleAround(songs, startIndex) : songs;
-        const index = get().shuffle ? 0 : Math.max(0, Math.min(startIndex, list.length - 1));
+        const index = get().shuffle
+          ? 0
+          : Math.max(0, Math.min(startIndex, list.length - 1));
+        // Multi-song queue → keep playing next songs without stopping
+        const multi = list.length > 1;
+        const prevRepeat = get().repeat;
         set({
           queue: list,
           index,
@@ -295,6 +299,7 @@ export const useMusify = create<MusifyState>()(
           radioImage: null,
           lyrics: null,
           lyricsOpen: false,
+          ...(multi && prevRepeat === "off" ? { repeat: "all" as const } : {}),
         });
         get().recordPlayed(list[index]!);
       },
@@ -319,7 +324,7 @@ export const useMusify = create<MusifyState>()(
         const s = get();
         if (s.source !== "youtube" || s.queue.length === 0) return;
         if (s.repeat === "one") {
-          set({ position: 0, isPlaying: true });
+          set({ position: 0, isPlaying: true, seekRequest: 0 });
           return;
         }
         const last = s.index >= s.queue.length - 1;
@@ -343,7 +348,7 @@ export const useMusify = create<MusifyState>()(
         const s = get();
         if (s.source !== "youtube" || s.queue.length === 0) return;
         if (s.position > 3) {
-          set({ position: 0 });
+          set({ position: 0, seekRequest: 0 });
           return;
         }
         const nextIndex = s.index <= 0 ? s.queue.length - 1 : s.index - 1;
@@ -357,13 +362,18 @@ export const useMusify = create<MusifyState>()(
         });
         if (song) s.recordPlayed(song);
       },
-      seek: (seconds) => set({ position: Math.max(0, seconds), seekRequest: Math.max(0, seconds) }),
+      seek: (seconds) =>
+        set({
+          position: Math.max(0, seconds),
+          seekRequest: Math.max(0, seconds),
+        }),
       setPosition: (seconds) => set({ position: seconds }),
       setDuration: (seconds) => set({ duration: seconds }),
       toggleShuffle: () => set((s) => ({ shuffle: !s.shuffle })),
       cycleRepeat: () =>
         set((s) => ({
-          repeat: s.repeat === "off" ? "all" : s.repeat === "all" ? "one" : "off",
+          repeat:
+            s.repeat === "off" ? "all" : s.repeat === "all" ? "one" : "off",
         })),
       setNowPlayingOpen: (v) => set({ nowPlayingOpen: v }),
       playNext: (song) =>
