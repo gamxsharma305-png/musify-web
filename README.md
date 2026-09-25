@@ -1,17 +1,19 @@
-# Musify (Web)
+# GMAX
 
-Web version of **Musify** — YouTube Music–style player with the same teal Material theme, search, playlists, library, radio, and playback.
+Music streaming website — YouTube Music–style player with teal Material theme, catalog, search, library, radio, and playback.
+
+This repository is ready to import on **Vercel**.
 
 ## Deploy on Vercel
 
 1. Open [vercel.com/new](https://vercel.com/new)
-2. Import GitHub repo **`gamxsharma305-png/musify-web`**
-3. Leave defaults (Vite / Nitro) and click **Deploy**
-4. After the build finishes, open the Vercel URL — that is the live website
+2. Import this GitHub repo: `gamxsharma305-png/musify-web`
+3. Framework: **Vite** (Nitro / TanStack Start output is produced by `npm run build`)
+4. Click **Deploy**
 
-No API keys are required. Liked songs and playlists stay in the browser (`localStorage`).
+No API keys are required. Liked songs and playlists are stored in the browser (`localStorage`).
 
-## Local
+## Local run
 
 ```bash
 npm install

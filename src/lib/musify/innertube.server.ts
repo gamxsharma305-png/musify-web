@@ -395,7 +395,7 @@ export async function fetchLyrics(
 ): Promise<string | null> {
   try {
     const url = `https://lrclib.net/api/search?track_name=${encodeURIComponent(title)}&artist_name=${encodeURIComponent(artist)}`;
-    const res = await fetch(url, { headers: { "User-Agent": "MusifyWeb/1.0" } });
+    const res = await fetch(url, { headers: { "User-Agent": "GMAXWeb/1.0" } });
     if (!res.ok) return null;
     const data = (await res.json()) as Array<{
       plainLyrics?: string | null;

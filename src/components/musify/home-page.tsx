@@ -50,7 +50,7 @@ export function HomePage() {
   return (
     <div className="flex min-h-full flex-col">
       <header className="flex h-16 items-center justify-center">
-        <h1 className="musify-title text-[30px] text-primary">Musify.</h1>
+        <h1 className="musify-title text-[30px] text-primary">GMAX.</h1>
       </header>
       <div className="flex-1 space-y-2 px-2.5 pb-4">
         {playlists.length > 0 ? (
