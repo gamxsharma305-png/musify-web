@@ -1,0 +1,150 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@font-face {
+  font-family: "Paytone One";
+  src: url("/PaytoneOne-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --font-sans: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Paytone One", "Figtree", sans-serif;
+
+  --color-bg: var(--m-bg);
+  --color-surface: var(--m-surface);
+  --color-surface-low: var(--m-surface-low);
+  --color-surface-high: var(--m-surface-high);
+  --color-surface-highest: var(--m-surface-highest);
+  --color-fg: var(--m-fg);
+  --color-muted: var(--m-muted);
+  --color-primary: var(--m-primary);
+  --color-on-primary: var(--m-on-primary);
+  --color-primary-container: var(--m-primary-container);
+  --color-on-primary-container: var(--m-on-primary-container);
+  --color-secondary-container: var(--m-secondary-container);
+  --color-on-secondary-container: var(--m-on-secondary-container);
+  --color-border: var(--m-border);
+  --color-ring: var(--m-primary);
+
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 28px;
+
+  --shadow-mini: 0 8px 28px color-mix(in oklab, #000 35%, transparent);
+}
+
+:root {
+  --m-accent: #009688;
+  --m-bg: #101414;
+  --m-surface: #1a1f1e;
+  --m-surface-low: #161b1a;
+  --m-surface-high: #232928;
+  --m-surface-highest: #2d3433;
+  --m-fg: #e2e8e6;
+  --m-muted: #a8b3b0;
+  --m-primary: #80cbc4;
+  --m-on-primary: #003732;
+  --m-primary-container: #005048;
+  --m-on-primary-container: #a7f3ea;
+  --m-secondary-container: #2a4a46;
+  --m-on-secondary-container: #cde8e3;
+  --m-border: color-mix(in oklab, var(--m-fg) 12%, transparent);
+}
+
+html[data-theme="light"] {
+  --m-bg: #f7f4f2;
+  --m-surface: #ffffff;
+  --m-surface-low: #f1eeeb;
+  --m-surface-high: #e8e4e1;
+  --m-surface-highest: #ddd8d4;
+  --m-fg: #1a1c1c;
+  --m-muted: #5c6361;
+  --m-border: color-mix(in oklab, var(--m-fg) 12%, transparent);
+}
+
+html[data-theme="dark"][data-pure-black="1"] {
+  --m-bg: #000000;
+  --m-surface: #0a0a0a;
+  --m-surface-low: #0a0a0a;
+  --m-surface-high: #121212;
+  --m-surface-highest: #1a1a1a;
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  background: var(--m-bg);
+  color: var(--m-fg);
+  font-family: var(--font-sans);
+}
+
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  * {
+    border-color: var(--m-border);
+  }
+}
+
+.musify-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.5px;
+}
+
+.cookie-shape {
+  border-radius: 38%;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.marquee-track {
+  display: inline-flex;
+  animation: marquee 12s linear infinite;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+  }
+}
