@@ -6,9 +6,12 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-export const DEFAULT_APP_NAME = "Grok App";
+export const DEFAULT_APP_NAME = "GMAX";
 export const OG_SERVICE_URL_DEFAULT = "https://og.grok.me";
 export const OG_SITE_REL_PATH = "src/lib/og/site.json";
+
+/** User-provided Gmix / GMAX home-screen logo */
+const APP_ICON_URL = "https://i.postimg.cc/prCsgYtQ/me-(1).png";
 
 const SHARE_META_KEYS = new Set([
   "og:title",
@@ -30,21 +33,21 @@ const SHARE_META_KEYS = new Set([
 
 export function escapeHtml(value) {
   return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
+    .replaceAll("&", "&")
+    .replaceAll("<", "<")
+    .replaceAll(">", ">")
+    .replaceAll('"', """)
     .replaceAll("'", "&#39;");
 }
 
-/** Inverse of escapeHtml. Decode &amp; last so a single pass undoes one encode. */
+/** Inverse of escapeHtml. Decode & last so a single pass undoes one encode. */
 function unescapeHtml(value) {
   return String(value)
-    .replaceAll("&lt;", "<")
-    .replaceAll("&gt;", ">")
-    .replaceAll("&quot;", '"')
+    .replaceAll("<", "<")
+    .replaceAll(">", ">")
+    .replaceAll(""", '"')
     .replaceAll("&#39;", "'")
-    .replaceAll("&amp;", "&");
+    .replaceAll("&", "&");
 }
 
 /** 6-digit hex for the og.grok.me placeholder, or "" if site.color is missing/invalid. */
@@ -158,7 +161,7 @@ export function renderInstallPageHtml(template, { host, url } = {}) {
 }
 
 export function renderWebManifest(hostHeader) {
-  const name = appNameFromHost(hostHeader);
+  const name = appNameFromHost(hostHeader) || DEFAULT_APP_NAME;
   return JSON.stringify(
     {
       name,
@@ -167,13 +170,35 @@ export function renderWebManifest(hostHeader) {
       start_url: "/",
       scope: "/",
       display: "standalone",
-      background_color: "#000000",
-      theme_color: "#000000",
+      display_override: ["standalone", "fullscreen", "minimal-ui"],
+      orientation: "portrait-primary",
+      background_color: "#0a0e0e",
+      theme_color: "#009688",
+      categories: ["music", "entertainment"],
       icons: [
         {
-          src: "/__grok/icon-180.png",
+          src: APP_ICON_URL,
+          sizes: "192x192",
+          type: "image/png",
+          purpose: "any",
+        },
+        {
+          src: APP_ICON_URL,
+          sizes: "512x512",
+          type: "image/png",
+          purpose: "any",
+        },
+        {
+          src: APP_ICON_URL,
+          sizes: "512x512",
+          type: "image/png",
+          purpose: "maskable",
+        },
+        {
+          src: APP_ICON_URL,
           sizes: "180x180",
           type: "image/png",
+          purpose: "any",
         },
       ],
     },
@@ -187,16 +212,27 @@ export function grokPwaHeadTags(appName = DEFAULT_APP_NAME) {
     // Standalone display comes from the manifest ("display": "standalone");
     // the legacy *-web-app-capable metas it replaces are deliberately absent.
     ["manifest", '<link rel="manifest" href="/__grok/manifest.webmanifest">'],
-    ["apple-touch-icon", '<link rel="apple-touch-icon" href="/__grok/icon-180.png">'],
+    [
+      "apple-touch-icon",
+      `<link rel="apple-touch-icon" href="${APP_ICON_URL}">`,
+    ],
     [
       "apple-mobile-web-app-title",
       `<meta name="apple-mobile-web-app-title" content="${escapeHtml(appName)}">`,
     ],
     [
       "apple-mobile-web-app-status-bar-style",
-      '<meta name="apple-mobile-web-app-status-bar-style" content="black">',
+      '<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">',
     ],
-    ["theme-color", '<meta name="theme-color" content="#000000">'],
+    ["theme-color", '<meta name="theme-color" content="#009688">'],
+    [
+      "mobile-web-app-capable",
+      '<meta name="mobile-web-app-capable" content="yes">',
+    ],
+    [
+      "apple-mobile-web-app-capable",
+      '<meta name="apple-mobile-web-app-capable" content="yes">',
+    ],
   ];
 }
 
@@ -437,7 +473,8 @@ export function injectGrokPwaHead(html, ctx = {}) {
   const missing = grokPwaHeadTags(appName)
     .filter(([key]) => {
       if (key === "manifest") return !next.includes('href="/__grok/manifest.webmanifest"');
-      if (key === "apple-touch-icon") return !next.includes('href="/__grok/icon-180.png"');
+      if (key === "apple-touch-icon")
+        return !next.includes("apple-touch-icon") || !next.includes(APP_ICON_URL);
       return !next.includes(`name="${key}"`);
     })
     .map(([, tag]) => tag);
