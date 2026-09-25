@@ -1,0 +1,39 @@
+{
+  "name": "GMAX",
+  "short_name": "GMAX",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "fullscreen", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#0a0e0e",
+  "theme_color": "#009688",
+  "categories": ["music", "entertainment"],
+  "icons": [
+    {
+      "src": "https://i.postimg.cc/prCsgYtQ/me-(1).png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://i.postimg.cc/prCsgYtQ/me-(1).png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://i.postimg.cc/prCsgYtQ/me-(1).png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "https://i.postimg.cc/prCsgYtQ/me-(1).png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
